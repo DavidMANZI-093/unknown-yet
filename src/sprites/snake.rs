@@ -58,8 +58,8 @@ impl Snake {
 
         let (new_x, new_y) = match self.direction {
             Direction::Right => (if head.x < width - 1 { head.x + 1 } else { 0 }, head.y),
-            Direction::Left => (if head.x > 0 { head.x - 1 } else { width }, head.y),
-            Direction::Up => (head.x, if head.y > 0 { head.y - 1 } else { height }),
+            Direction::Left => (if head.x > 0 { head.x - 1 } else { width - 1 }, head.y),
+            Direction::Up => (head.x, if head.y > 0 { head.y - 1 } else { height - 1 }),
             Direction::Down => (head.x, if head.y < height - 1 { head.y + 1 } else { 0 }),
         };
 
@@ -67,7 +67,7 @@ impl Snake {
 
         if let Some(e_idx) = e_idx {
             food._replace(e_idx);
-            self._grow(new_x, new_y);
+            // self._grow(new_x, new_y);
             match self._tx.send(format!(
                 "(unknown-yet) info: snake.grow (x: {}, y: {})",
                 new_x, new_y

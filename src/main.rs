@@ -126,8 +126,8 @@ fn main() -> io::Result<()> {
         }
     };
 
-    let mut food = Food::new(4, canvas._width_i, canvas._height_i);
-    let mut snake = Snake::new(4, 8, 4, tx.clone());
+    let mut food = Food::new(500, canvas._width_i, canvas._height_i);
+    let mut snake = Snake::new(8, 8, 4, tx.clone());
 
     match tx.send(String::from("(unknown-yet) info: snake created")) {
         Ok(_) => {}
