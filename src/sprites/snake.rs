@@ -103,7 +103,7 @@ impl Snake {
             Direction::Down => Direction::Up,
         };
 
-        if new_direction != opposite {
+        if new_direction != opposite && new_direction != self.direction {
             match self._tx.send(format!(
                 "(unknown-yet) info: snake.turn.direction::{:?}",
                 new_direction

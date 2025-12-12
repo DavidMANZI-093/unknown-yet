@@ -79,7 +79,43 @@ impl<'a> Canvas<'a> {
     where
         F: FnMut(&mut Self, &mut Snake, &mut Food, u16, u16),
     {
-        loop {
+        let mut dir_pending: Option<Direction> = None;
+        let mut last_update = std::time::Instant::now();
+        let mut is_running = true;
+
+        while is_running {
+            while event::poll(Duration::from_millis(0))? {
+                match event::read()? {
+                    Event::Key(key_event) => {
+                        if !key_event.is_repeat() {
+                            match key_event.code {
+                                KeyCode::Char('q') | KeyCode::Esc => is_running = false,
+                                KeyCode::Up => dir_pending = Some(Direction::Up),
+                                KeyCode::Down => dir_pending = Some(Direction::Down),
+                                KeyCode::Left => dir_pending = Some(Direction::Left),
+                                KeyCode::Right => dir_pending = Some(Direction::Right),
+
+                                _ => {}
+                            }
+                        }
+                    }
+                    Event::Resize(w, h) => self._on_resize(w, h)?,
+                    _ => {}
+                }
+            }
+
+            if !is_running {
+                break;
+            }
+
+            if last_update.elapsed().as_millis() > (self._mspf / 16) as u128 {
+                last_update = std::time::Instant::now();
+                if let Some(dir) = dir_pending {
+                    _snake.turn(dir);
+                    dir_pending = None;
+                }
+            }
+
             update(self, _snake, _food, self._width_i, self._height_i);
             queue!(self._handle, cursor::MoveTo(0, 0))?;
             for y in 0..self._height_i {
@@ -92,22 +128,6 @@ impl<'a> Canvas<'a> {
             self._handle.flush()?;
 
             std::thread::sleep(Duration::from_millis(self._mspf));
-
-            if event::poll(Duration::from_millis(0))? {
-                match event::read()? {
-                    Event::Key(key_event) => match key_event.code {
-                        KeyCode::Char('q') | KeyCode::Esc => break,
-                        KeyCode::Up => _snake.turn(Direction::Up),
-                        KeyCode::Down => _snake.turn(Direction::Down),
-                        KeyCode::Left => _snake.turn(Direction::Left),
-                        KeyCode::Right => _snake.turn(Direction::Right),
-
-                        _ => {}
-                    },
-                    Event::Resize(w, h) => self._on_resize(w, h)?,
-                    _ => {}
-                }
-            }
         }
 
         execute!(self._handle, cursor::Show, terminal::LeaveAlternateScreen)?;
