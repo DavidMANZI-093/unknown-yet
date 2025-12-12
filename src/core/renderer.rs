@@ -87,7 +87,7 @@ impl<'a> Canvas<'a> {
             while event::poll(Duration::from_millis(0))? {
                 match event::read()? {
                     Event::Key(key_event) => {
-                        if !key_event.is_repeat() {
+                        if !key_event.is_repeat() && key_event.modifiers.is_empty() {
                             match key_event.code {
                                 KeyCode::Char('q') | KeyCode::Esc => is_running = false,
                                 KeyCode::Up => dir_pending = Some(Direction::Up),
