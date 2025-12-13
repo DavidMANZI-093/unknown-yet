@@ -22,10 +22,11 @@ pub struct Snake {
     pub segments: VecDeque<Segment>,
     direction: Direction,
     _tx: Sender<String>,
+    grows: bool,
 }
 
 impl Snake {
-    pub fn new(s_count: u16, start_x: u16, start_y: u16, tx: Sender<String>) -> Self {
+    pub fn new(s_count: u16, start_x: u16, start_y: u16, grows: bool, tx: Sender<String>) -> Self {
         let mut segments = VecDeque::new();
 
         for i in 0..s_count {
@@ -50,6 +51,7 @@ impl Snake {
             segments,
             direction: Direction::Right,
             _tx: tx,
+            grows,
         }
     }
 
@@ -67,7 +69,9 @@ impl Snake {
 
         if let Some(e_idx) = e_idx {
             food._replace(e_idx);
-            // self._grow(new_x, new_y);
+            if self.grows {
+                self._grow(new_x, new_y)
+            };
             match self._tx.send(format!(
                 "(unknown-yet) info: snake.grow (x: {}, y: {})",
                 new_x, new_y

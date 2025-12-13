@@ -4,6 +4,8 @@ use std::{
     thread,
 };
 
+use clap::Parser;
+
 use crossterm::{cursor, execute, terminal};
 use tokio::sync::broadcast::{self, Receiver, Sender, error::RecvError};
 use zbus::{connection, interface};
@@ -19,10 +21,28 @@ mod sprites;
 #[derive(Debug, Default, Clone)]
 struct Logger;
 
+#[derive(Parser)]
+#[command(name="unknown-yet", version="1.0", about="A snake game ('Dunno yet...)", long_about = None)]
+struct Cli {
+    /// Sets the snake's size (Default is 8)
+    #[arg(short, long)]
+    size: Option<u8>,
+
+    /// Sets the number of eggs in canvas (Default is 255)
+    #[arg(short, long)]
+    eggs: Option<u8>,
+
+    /// Sets the snake's growth (Default is false)
+    #[arg(short, long)]
+    grow: Option<bool>,
+}
+
 #[interface(name = "org.zbus.UnknownYet0")]
 impl Logger {}
 
 fn main() -> io::Result<()> {
+    let cli = Cli::parse();
+
     let (tx, mut rx) = broadcast::channel(1024) as (Sender<String>, Receiver<String>);
 
     thread::spawn(move || {
@@ -126,8 +146,30 @@ fn main() -> io::Result<()> {
         }
     };
 
-    let mut food = Food::new(500, canvas._width_i, canvas._height_i);
-    let mut snake = Snake::new(8, 8, 4, tx.clone());
+    let mut food = Food::new(
+        if cli.eggs.is_some() && cli.eggs.unwrap() > 0 && cli.eggs.unwrap() < 255 {
+            cli.eggs.unwrap() as u16
+        } else {
+            255
+        },
+        canvas._width_i,
+        canvas._height_i,
+    );
+    let mut snake = Snake::new(
+        if cli.size.is_some() && cli.size.unwrap() > 0 && cli.size.unwrap() < 17 {
+            cli.size.unwrap() as u16
+        } else {
+            8
+        },
+        8,
+        4,
+        if cli.grow.is_some() {
+            cli.grow.unwrap()
+        } else {
+            false
+        },
+        tx.clone(),
+    );
 
     match tx.send(String::from("(unknown-yet) info: snake created")) {
         Ok(_) => {}
